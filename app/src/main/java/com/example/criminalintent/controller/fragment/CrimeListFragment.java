@@ -1,5 +1,6 @@
 package com.example.criminalintent.controller.fragment;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 
@@ -19,16 +20,18 @@ import com.example.criminalintent.R;
 import com.example.criminalintent.controller.activity.CrimePagerActivity;
 import com.example.criminalintent.model.Crime;
 import com.example.criminalintent.repository.CrimeRepository;
-import com.example.criminalintent.repository.IRepository;
+import com.example.criminalintent.repository.RepositoryInterface;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 public class CrimeListFragment extends Fragment {
-
     public static final String TAG = "CLF";
     private RecyclerView mRecyclerView;
-    private IRepository<Crime> mRepository;
+    private RepositoryInterface<Crime> mRepository;
     private CrimeAdapter mAdapter;
+    private int tempPosition = 0;
 
     public CrimeListFragment() {
         // Required empty public constructor
@@ -84,29 +87,63 @@ public class CrimeListFragment extends Fragment {
             mAdapter = new CrimeAdapter(crimes);
             mRecyclerView.setAdapter(mAdapter);
         } else {
-            mAdapter.notifyDataSetChanged();
+            mAdapter.notifyItemChanged(tempPosition);
         }
     }
 
     //view holder responsibility: hold reference to row views.
-    private class CrimeHolder extends RecyclerView.ViewHolder {
+    private class NotSolvedCrimeHolder extends RecyclerView.ViewHolder {
+        private TextView mTextViewId;
+        private Crime mCrime;
+        private TextView mTextViewTitle;
+        private TextView mTextViewDate;
+
+        public NotSolvedCrimeHolder(@NonNull View itemView) {
+            super(itemView);
+            mTextViewTitle = itemView.findViewById(R.id.not_solved_crime_title);
+            mTextViewDate = itemView.findViewById(R.id.not_solved_crime_date);
+            mTextViewId = itemView.findViewById(R.id.not_solved_crime_id);
+
+            itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    tempPosition = getLayoutPosition();
+                    Intent intent = CrimePagerActivity.newIntent(getActivity(), mCrime.getId());
+                    startActivity(intent);
+                }
+            });
+        }
+
+        public void bindCrime(Crime crime) {
+            mCrime = crime;
+            mTextViewTitle.setText(crime.getTitle());
+            @SuppressLint("SimpleDateFormat")
+            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MMM-dd - hh:mm:ss");
+            String date = formatter.format(Date.parse(mCrime.getDate().toString()));
+            mTextViewDate.setText(date);
+            mTextViewId.setText(crime.getId().toString());
+        }
+    }
+
+    private class SolvedCrimeHolder extends RecyclerView.ViewHolder {
 
         private Crime mCrime;
         private TextView mTextViewTitle;
         private TextView mTextViewDate;
         private ImageView mImageViewSolved;
 
-        public CrimeHolder(@NonNull View itemView) {
-            super(itemView);
 
-            mTextViewTitle = itemView.findViewById(R.id.list_row_crime_title);
-            mTextViewDate = itemView.findViewById(R.id.list_row_crime_date);
-            mImageViewSolved = itemView.findViewById(R.id.imgview_solved);
+
+        public SolvedCrimeHolder(@NonNull View itemView) {
+            super(itemView);
+            mTextViewTitle = itemView.findViewById(R.id.solved_list_row_crime_title);
+            mTextViewDate = itemView.findViewById(R.id.solved_list_row_crime_date);
+            mImageViewSolved = itemView.findViewById(R.id.solved_imgview_solved);
 
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-//                    Intent intent = CrimeDetailActivity.newIntent(getActivity(), mCrime.getId());
+                    tempPosition = getLayoutPosition();
                     Intent intent = CrimePagerActivity.newIntent(getActivity(), mCrime.getId());
                     startActivity(intent);
                 }
@@ -117,8 +154,6 @@ public class CrimeListFragment extends Fragment {
             mCrime = crime;
             mTextViewTitle.setText(crime.getTitle());
             mTextViewDate.setText(crime.getDate().toString());
-
-            mImageViewSolved.setVisibility(crime.isSolved() ? View.VISIBLE : View.INVISIBLE);
         }
     }
 
@@ -127,7 +162,20 @@ public class CrimeListFragment extends Fragment {
         2. create view holder
         3. bind view holder
      */
-    private class CrimeAdapter extends RecyclerView.Adapter<CrimeHolder> {
+    private class CrimeAdapter extends RecyclerView.Adapter {
+
+        private static final int SOLVED_CODE = 0;
+        private static final int NOT_SOLVED_CODE = 1;
+
+        @Override
+        public int getItemViewType(int position) {
+            if (mCrimes.get(position).isSolved()) {
+                return SOLVED_CODE;
+            } else {
+                return NOT_SOLVED_CODE;
+            }
+
+        }
 
         private List<Crime> mCrimes;
 
@@ -150,22 +198,44 @@ public class CrimeListFragment extends Fragment {
 
         @NonNull
         @Override
-        public CrimeHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
             Log.d(TAG, "onCreateViewHolder");
-
             LayoutInflater inflater = LayoutInflater.from(getActivity());
-            View view = inflater.inflate(R.layout.list_row_crime, parent, false);
+            View view;
+            RecyclerView.ViewHolder crimeHolder;
+            switch (viewType) {
+                case SOLVED_CODE:
+                    view = inflater.inflate(R.layout.solved_list_row_crime, parent, false);
+                    crimeHolder = new SolvedCrimeHolder(view) {
+                    };
+                    return crimeHolder;
+                case NOT_SOLVED_CODE:
+                    view = inflater.inflate(R.layout.not_solved_list_row_crime, parent, false);
+                    crimeHolder = new NotSolvedCrimeHolder(view);
+                    return crimeHolder;
+                default:
+                    view = inflater.inflate(R.layout.solved_list_row_crime, parent, false);
+                    crimeHolder = new SolvedCrimeHolder(view);
+                    return crimeHolder;
 
-            CrimeHolder crimeHolder = new CrimeHolder(view);
-            return crimeHolder;
+            }
         }
 
         @Override
-        public void onBindViewHolder(@NonNull CrimeHolder holder, int position) {
+        public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
             Log.d(TAG, "onBindViewHolder: " + position);
-
             Crime crime = mCrimes.get(position);
-            holder.bindCrime(crime);
+            switch (getItemViewType(position)) {
+                case SOLVED_CODE:
+                    SolvedCrimeHolder solvedCrimeHolder = (SolvedCrimeHolder) holder;
+                    solvedCrimeHolder.bindCrime(crime);
+                    break;
+                case NOT_SOLVED_CODE:
+                    NotSolvedCrimeHolder notSolvedCrimeHolder = (NotSolvedCrimeHolder) holder;
+                    notSolvedCrimeHolder.bindCrime(crime);
+                    break;
+            }
         }
+
     }
 }

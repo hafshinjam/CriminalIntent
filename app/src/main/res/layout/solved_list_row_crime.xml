@@ -7,7 +7,7 @@
     android:padding="8dp">
 
     <ImageView
-        android:id="@+id/imgview_solved"
+        android:id="@+id/solved_imgview_solved"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
@@ -16,20 +16,20 @@
         app:srcCompat="@drawable/ic_solved" />
 
     <TextView
-        android:id="@+id/list_row_crime_title"
+        android:id="@+id/solved_list_row_crime_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_toLeftOf="@id/imgview_solved"
+        android:layout_toLeftOf="@id/solved_imgview_solved"
         android:textSize="18sp"
         tools:text="Crime Title" />
 
     <TextView
-        android:id="@+id/list_row_crime_date"
+        android:id="@+id/solved_list_row_crime_date"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/list_row_crime_title"
+        android:layout_below="@id/solved_list_row_crime_title"
         android:layout_marginTop="8dp"
-        android:layout_toLeftOf="@id/imgview_solved"
+        android:layout_toLeftOf="@id/solved_imgview_solved"
         android:textSize="18sp"
         tools:text="Crime Date" />
 </RelativeLayout>

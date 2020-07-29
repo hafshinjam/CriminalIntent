@@ -3,7 +3,7 @@ package com.example.criminalintent.repository;
 import java.util.List;
 import java.util.UUID;
 
-public interface IRepository<E> {
+public interface RepositoryInterface<E> {
     List<E> getList();
     E get(UUID uuid);
     void setList(List<E> list);

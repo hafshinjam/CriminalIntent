@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public class CrimeRepository implements IRepository<Crime> {
+public class CrimeRepository implements RepositoryInterface<Crime> {
 
     private static CrimeRepository sCrimeRepository;
     private static final int NUMBER_OF_CRIMES = 100;
